@@ -1,0 +1,110 @@
+<Interconnect>
+	<LocalReport>
+		Declare @com_id int
+		Declare @period varchar(100)
+		
+		Set @com_id=11
+		Set @period='072007'
+		
+		Select com_short_name, 
+		isnull((
+			Select sum(call) 
+			from tblSummaryByOperator sbo 
+			where sbo.calling_com_id=com.com_id
+			and call_type in ('IN') 
+			and switch_type in ('ACCESS','CC08')
+			and com_id=@com_id
+			and period=@period
+		),0) Call08ACCIn,
+		isnull((
+			Select sum(duration) 
+			from tblSummaryByOperator sbo 
+			where sbo.calling_com_id=com.com_id
+			and call_type in ('IN') 
+			and switch_type in ('ACCESS','CC08')
+			and com_id=@com_id
+			and period=@period
+		),0) Duration08ACCIn,
+		isnull((
+			Select sum(call) 
+			from tblSummaryByOperator sbo 
+			where sbo.calling_com_id=com.com_id
+			and call_type in ('IN') 
+			and switch_type in ('DRX')
+			and com_id=@com_id
+			and period=@period
+		),0) CallDRXIn,
+		isnull((
+			Select sum(duration) 
+			from tblSummaryByOperator sbo 
+			where sbo.calling_com_id=com.com_id
+			and call_type in ('IN') 
+			and switch_type in ('DRX')
+			and com_id=@com_id
+			and period=@period
+		),0) DurationDRXIn,
+		isnull((
+			Select sum(call) 
+			from tblSummaryByOperator sbo 
+			where sbo.called_com_id=com.com_id
+			and call_type in ('OUT') 
+			and switch_type in ('ACCESS')
+			and com_id=@com_id
+			and period=@period
+		),0) CallACCOut,
+		isnull((
+			Select sum(duration) 
+			from tblSummaryByOperator sbo 
+			where sbo.called_com_id=com.com_id
+			and call_type in ('OUT') 
+			and switch_type in ('ACCESS')
+		),0) DurationACCOut,
+		isnull((
+			Select sum(call) 
+			from tblSummaryByOperator sbo 
+			where sbo.called_com_id=com.com_id
+			and call_type in ('OUT') 
+			and switch_type in ('CC08')
+			and com_id=@com_id
+			and period=@period
+		),0) Call08Out,
+		isnull((
+			Select sum(duration) 
+			from tblSummaryByOperator sbo 
+			where sbo.called_com_id=com.com_id
+			and call_type in ('OUT') 
+			and switch_type in ('CC08')
+			and com_id=@com_id
+			and period=@period
+		),0) Duration08Out,
+		isnull((
+			Select sum(call) 
+			from tblSummaryByOperator sbo 
+			where sbo.called_com_id=com.com_id
+			and call_type in ('OUT') 
+			and switch_type in ('DRX')
+			and com_id=@com_id
+			and period=@period
+		),0) CallDRXOut,
+		isnull((
+			Select sum(duration) 
+			from tblSummaryByOperator sbo 
+			where sbo.called_com_id=com.com_id
+			and call_type in ('OUT') 
+			and switch_type in ('DRX')
+			and com_id=@com_id
+			and period=@period
+		),0) DurationDRXOut
+		from tblCompany com
+	</LocalReport>
+	<CompanyProfile>
+		Select *,convert(varchar,IssueDate,107) IsDate,convert(varchar,DueDate,107) DuDate from tblCompany com
+		inner join tblCompanyInvoice ci on ci.ComId=com.com_id
+		where com.com_id=@@com_id and ci.period=@@period
+	</CompanyProfile>
+	<InvoiceDetail>
+		Select cid.* from tblCompanyInvoice ci 
+		inner join tblCompanyInvoiceDetail cid on cid.InvoiceID=ci.InvoiceID
+		where ci.ComId=@@com_id and ci.period=@@period and cid.CallType='IN'
+	</InvoiceDetail>	
+</Interconnect>

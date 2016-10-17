@@ -1,0 +1,746 @@
+<?php
+	//require_once("./common/config.php");
+//error_reporting(E_ALL);
+
+	require_once("./common/agent.php");
+	require_once("./common/class.audit.php");	
+	require_once("./common/functions.php");	
+	require_once("./common/agent_ado.php");
+	require_once("./common/class.cashdrawer.php");
+	
+	/*
+		+ ************************************************************************************** +	
+		*																																												 *
+		* This code is not to be distributed without the written permission of BRC Technology.   *
+		* Copyright © 2006 <a href="http://www.brc-tech.com" target="_blank">BRC Technology</a>  *
+		* 																																											 *
+		+ ************************************************************************************** +
+	*/
+
+	//$urlwebservice="http://localhost:8080/WiseBillerHttpInterface/Service.asmx?WSDL";
+//	print_r($_REQUEST);
+	if(!empty($smt) && isset($smt) && ($smt == "save901") && $isBeforeReport==0){		
+			$Audit = new Audit();
+			$DID = intval($DID);
+			$fullname = stripslashes(FixQuotes($fullname));
+			$now = date("Ymd H:i:s");
+			//$tmpClient=new SoapClient($urlwebservice);
+						$db->StartTrans();
+						try{
+							$sql = "UPDATE tblCustCashDrawer SET IsSubmitted = 1 WHERE DrawerID = $DID";
+							$db->_Execute($sql);
+						
+							$sql = "UPDATE tblDrawer SET Status = 1 WHERE DrawerID = $DID";
+							$db->_Execute($sql);
+						
+							$description = "Close cash drawer for cashier $fullname";
+										
+							$Audit->AddAudit("", "", "Close cash drawer", $description, $user['FullName'], 1, 13);
+							
+							$CashDrawer=new CashDrawer($db,$DID);
+								
+							$CashDrawer->Process();
+							
+							$db->CompleteTrans();
+							$retOut = $myinfo->info("Successfully close cash drawer for cashier $fullname.");
+								
+			}catch(exception $e){
+				$db->FailTrans();
+				$retOut = $myinfo->error("Failed close drawer for cashier $fullname.");
+
+				//$errorm=$e;
+			}
+						
+
+								//Call Web Service method
+/*							}else{
+								$error = $mydb->sql_error();
+								$retOut = $myinfo->error("Failed close drawer for cashier $fullname.", $error['message']);
+							}*/
+							
+						/*}else{
+							$error = $mydb->sql_error();
+							$retOut = $myinfo->error("Failed close cash drawer for cashier $fullname.", $error['message']);
+						}*/
+			//}
+	}
+
+?>
+<script language="javascript" type="text/javascript">
+	function submitForm(){
+		if(fdrawerclose.DID.selectedIndex < 1){
+			alert("Please select user to close cash drawer");
+			fdrawerclose.DID.focus();
+			return;
+		}else{
+			fdrawerclose.fullname.value = fdrawerclose.DID.options[fdrawerclose.DID.selectedIndex].text;
+			fdrawerclose.btnSubmit.disable=true;
+			fdrawerclose.submit();
+		}
+	}
+	function submitFormReport(){
+	if(fdrawerclose.DID.selectedIndex < 1){
+			alert("Please select user to close cash drawer");
+			fdrawerclose.DID.focus();
+			return;
+		}else{
+			fdrawerclose.fullname.value = fdrawerclose.DID.options[fdrawerclose.DID.selectedIndex].text;
+			fdrawerclose.isBeforeReport.value=1;
+			fdrawerclose.btnSubmit.disable=true;
+			fdrawerclose.submit();
+		}
+	}
+</script>
+<table border="0" width="100%">
+	<tr>
+	<td><table border="0" cellpadding="0" cellspacing="5" align="left" width="50%">
+	<tr>		
+		<td valign="top" align="left">
+			<table border="0" cellpadding="2" cellspacing="0" class="formbg" align="left" width="100%">
+				<tr>
+					<td align="left" class="formtitle"><b>CLOSE CASH DRAWER</b></td>
+					<td align="right">&nbsp;</td>
+				</tr> 				
+				<tr>
+					<td colspan="2">
+						<form name="fdrawerclose" method="post" action="./" onSubmit="return false;">
+							<table border="0" cellpadding="3" cellspacing="0" align="left" width="100%" bgcolor="#feeac2">																
+								<tr>
+									<td width="35%" align="left">Account:</td>
+									<td colspan="2" align="left">
+										<select name="DID" class="boxenabled" tabindex="1">	
+											<option value="0">Select cashier</option>																			
+											<?php
+												$sql = "SELECT d.DrawerID, u.FullName 
+																FROM tblDrawer d, tblSecUser u
+																WHERE d.UserID = u.UserID and d.Status = 0";													
+												
+												$que = $mydb->sql_query($sql);									
+												if($que){
+												    
+													while($rst = $mydb->sql_fetchrow($que)){	
+														$DrawerID = $rst['DrawerID'];
+														$select="";
+														if($DID==intval($rst["DrawerID"])){
+															$select=" selected";
+														}
+														$FullName = $rst['FullName'];									
+														print "<option value='".$DrawerID."' $select>".$FullName."</option>";
+													}
+												}
+												$mydb->sql_freeresult();
+											?>
+										</select>								  </td>
+								</tr>
+								
+								<tr><td colspan="3">&nbsp;</td></tr>								
+								<tr> 				  
+								<td colspan="3" align="center"><input type="submit" tabindex="10" name="btnSubmit" value="Submit" class="button" onclick="submitForm();" />
+								  <input type="submit" tabindex="11" name="btnSubmitBefore" value="Report" class="button" onclick="submitFormReport();" /></td>
+							  </tr>
+							 <?php
+									if(isset($retOut) && (!empty($retOut))){
+										print "<tr><td colspan=\"2\" align=\"left\">$retOut</td></tr>";
+									}
+								?>
+							</table>
+						<input type="hidden" name="fullname" value="" />
+						<input type="hidden" name="isBeforeReport" value="0" />
+						<input type="hidden" name="pg" value="901" />
+						<input type="hidden" name="smt" value="save901" />
+						</form>					</td>
+				</tr>			
+			</table>		</td>
+	</tr>
+</table></td>
+	</tr>
+	<tr>
+	  <td><table border="0"  width="100%">
+	<tr><td align="left"> 
+	<?php 
+  if(!empty($smt) && isset($smt) && ($smt == "save901") && $isBeforeReport==1){
+
+  ?>
+  <table width="657" border="0" cellpadding="0" cellspacing="5" bordercolor="#999999" style="border-collapse:collapse">
+	<tr>		
+		<td valign="top" align="left">
+			<table border="0" cellpadding="2" cellspacing="0" bordercolor="#999999" style="border-collapse:collapse"class="formbg" align="left" width="100%">
+				<tr>
+					<td width="76%" align="left" class="formtitle"><b>Before Close Cash Drawer Report</b></td>
+				    <td width="24%" align="right" class="formtitle">[<a href="./administration/cashdrawerreport.php?DID=<?php echo $DID?>&close=0" target="_blank">Print Report</a>]&nbsp;[<a href="./export/close_drawer.php?DID=<?php echo $DID?>&close=0&type=csv">Export Report</a>]</td>
+				</tr> 				
+				<tr>
+					<td colspan="2">
+							<table border="0" bordercolor="#999999" style="border-collapse:collapse" cellpadding="3" cellspacing="0" align="left" width="100%" bgcolor="#feeac2">																
+								
+								
+							  <?php
+									$sql="select DrawerID, Min(PaymentDate) 'StartTransaction',
+													 Max(PaymentDate) 'EndTransaction', Cashier
+											
+											from tblCustCashDrawer cd
+											where DrawerID=$DID
+											group by DrawerID, Cashier";
+									$result=$mydb->sql_query($sql);
+									while($row2=$mydb->sql_fetchrow($result)){
+										$drawerid=intval($row2["DrawerID"]);
+										$cashier=stripslashes($row2["Cashier"]);
+										$starttransaction=stripslashes($row2["StartTransaction"]);
+										$endtransaction=stripslashes($row2["EndTransaction"]);
+										
+								
+							  ?>
+							  
+							  <tr>
+								  <td colspan="4"> &nbsp;&nbsp;&nbsp;Drawer: <b><?php echo $drawerid;?></b>, Cashier: <b><?php echo $cashier;?></b></td>
+							  </tr>
+								<tr>
+								  <td colspan="3"> &nbsp;&nbsp;&nbsp;Start Transaction:  <b><?php echo $starttransaction;?></b></td>
+							      <td width="51%">End Transaction: <b><?php echo $endtransaction;?></b></td>
+						      </tr>
+							   <?php } ?>
+							</table>					  </td>
+				</tr>			
+								<tr>
+					<td colspan="2">
+							<table border="0" style="border-collapse:collapse" cellpadding="3" cellspacing="0" align="left" width="100%" bgcolor="#feeac2">																
+								<tr>
+									<td></td>
+								  <td colspan="4" style="border-bottom:1px solid;">&nbsp;</td>
+							  </tr>
+							  <tr>
+									<td style="border-left:1px solid;">&nbsp;</td>
+									<td colspan="2" style="border-left:1px solid;">&nbsp;&nbsp;::&nbsp;<b>Revenue From System</b></td>
+									<td style="border-left:1px solid;">&nbsp;</td>
+									<td style="border-left:1px solid; border-right:1px solid">&nbsp;</td>
+								</tr>
+								<?php 
+							  	  $sum1=0.0;
+								  $sum2=0.0;
+								  $sql="select DrawerID, TransactionModeID, sum(PaymentAmount) 'PaymentAmount', TransactionName
+from (
+select cd.DrawerID, cd.TransactionModeID, sum(PaymentAmount) 'PaymentAmount', t.TransactionName
+										from tblCustCashDrawer cd
+												left join 
+												tlkpTransaction t
+												on
+												cd.TransactionModeID=t.TransactionID
+										where cd.DrawerID=$DID
+										and 
+										cd.TransactionModeID in (1,3,4,5,6)
+										and isnull(cd.IsRollback,0)=0
+										group by cd.DrawerID, cd.TransactionModeID, t.TransactionName
+union
+select $DID 'DrawerID', t.TransactionID, 0 'PaymentAmount', TransactionName
+from tlkpTransaction t
+where t.TransactionID in (1,3,4,5,6)
+) d
+group by 
+DrawerID, TransactionModeID, TransactionName
+Union
+select cd.DrawerID,'0'  'TransactionModeID', sum(PaymentAmount) 'PaymentAmount', 'Total' 'TransactionName'
+										from tblCustCashDrawer cd
+												left join 
+												tlkpTransaction t
+												on
+												cd.TransactionModeID=t.TransactionID
+										where cd.DrawerID=$DID
+										and 
+										cd.TransactionModeID in (1,3,4,5,6)
+										and isnull(cd.IsRollback,0)=0
+										group by cd.DrawerID";
+									$result=$mydb->sql_query($sql);
+									$i=0;
+									while($row=$mydb->sql_fetchrow($result)){
+									$i++;										
+									if($row['TransactionName']!="Total"){
+							  ?>															
+								<tr>
+								  <td width="6%">&nbsp;</td>
+									<td width="6%" style="border-left:1px solid;">&nbsp;</td>
+								  <td><?php echo $i.". ".stripslashes($row['TransactionName']);?> : </td>
+								  <td style="border-left:1px solid;"  width="130" align="right">
+								  <?php
+									   	echo FormatCurrency($row['PaymentAmount']);
+								   ?>
+								   </td>
+									 <td style="border-left:1px solid;border-right:1px solid;" width="130" align="right">&nbsp;
+									 	
+									 </td>  
+									 <td width="6%">&nbsp;</td>
+								</tr>
+								  <?php 
+									}else{
+									
+									?>									
+								<tr>
+								  <td width="6%">&nbsp;</td>
+									<td width="6%" style="border-left:1px solid;">&nbsp;</td>
+								  <td><b><?php echo stripslashes($row['TransactionName']);?></b></td>
+								  <td style="border-left:1px solid;">&nbsp;</td>  
+								  <td width="130" align="right" style="border-left:1px solid; border-right:1px solid"><b><?php
+									   	echo FormatCurrency($row['PaymentAmount']);
+								   ?></b></td>
+								</tr>
+									<?php			
+									$sum1=doubleval($row['PaymentAmount']);			
+									}
+								}// end while
+									
+								?>
+		
+							  <?php 
+								 
+							$sql="select DrawerID, TransactionModeID, sum(PaymentAmount) 'PaymentAmount', TransactionName
+from (
+select cd.DrawerID, cd.TransactionModeID, sum(PaymentAmount) 'PaymentAmount', t.TransactionName
+										from tblCustCashDrawer cd
+												left join 
+												tlkpTransaction t
+												on
+												cd.TransactionModeID=t.TransactionID
+										where cd.DrawerID=$DID
+										and 
+										cd.TransactionModeID in (2,7,8,9,10,14,15)
+										and isnull(cd.IsRollback,0)=0
+										group by cd.DrawerID, cd.TransactionModeID, t.TransactionName
+union
+select $DID 'DrawerID', t.TransactionID, 0 'PaymentAmount', TransactionName
+from tlkpTransaction t
+where t.TransactionID in (2,7,8,9,10,14,15)
+) d
+group by 
+DrawerID, TransactionModeID, TransactionName
+										union
+										select cd.DrawerID, '' TransactionModeID, sum(PaymentAmount) 'PaymentAmount', 'Total' 'TransactionName'
+										from tblCustCashDrawer cd
+												left join 
+												tlkpTransaction t
+												on
+												cd.TransactionModeID=t.TransactionID
+
+										where cd.DrawerID=$DID
+										and 
+										cd.TransactionModeID in (2,7,8,9,10,15,14)
+										and isnull(cd.IsRollback,0)=0
+										group by cd.DrawerID
+										";
+									$result=$mydb->sql_query($sql);
+									$i=0;
+									$n = 0;
+									while($row=$mydb->sql_fetchrow($result)){
+									 	$n++;
+										if($i==0){
+										?>
+										<tr>
+										  <td style="border-left:1px solid;">&nbsp;</td>
+										  <td colspan="2" style="border-left:1px solid;">&nbsp;&nbsp;::&nbsp;<b>Refund from system</b></td>
+											<td style="border-left:1px solid;">&nbsp;</td>
+											<td style="border-left:1px solid; border-right:1px solid">&nbsp;</td>
+									  </tr>
+										<?php
+										$i++;
+										}	
+									 if($row["TransactionName"]!="Total"){								
+							  ?>							
+						
+								<tr>
+								  <td width="6%">&nbsp;</td>
+								  <td width="6%" style="border-left:1px solid;">&nbsp;</td>
+								  <td><?php echo $n.". ".stripslashes($row['TransactionName']);?> : </td>
+								  <td style="border-left:1px solid;" align="right">
+								  <?php
+									   	echo FormatCurrency($row['PaymentAmount']);
+								   ?>
+								   </td>  
+									 <td align="right" style="border-left:1px solid; border-right:1px solid;">&nbsp;</td>
+								</tr>
+								  <?php 
+									}else{
+									?>
+									
+								<tr>
+								  <td width="6%">&nbsp;</td>
+								  <td width="6%" style="border-left:1px solid;">&nbsp;</td>
+								  <td><b><?php echo stripslashes($row['TransactionName']);?></b></td>
+								  <td style="border-left:1px solid;">&nbsp;</td>  
+								  <td style="border-left:1px solid; border-right:1px solid;" align="right"><b>(<?php
+									   	echo FormatCurrency($row['PaymentAmount']);
+										$sum2=doubleval($row['PaymentAmount']);
+								   ?></b>)</td>
+								</tr>
+									<?php
+									}
+								}
+								?>	
+								<?php
+									if(($sum1-$sum2) > 0){
+										$totalonhand = "<font color=blue><b>".FormatCurrency($sum1-$sum2)."</b></font>";
+									}else{
+										$totalonhand = "<font color=red>(<b>".FormatCurrency(abs($sum1-$sum2))."</b>)</font>";
+									}
+								?>								
+								<tr>
+								  <td style="border-left:1px solid;">&nbsp;</td>
+									<td colspan="2" style="border-left:1px solid;">&nbsp;&nbsp;::&nbsp;<b>Net cash on hand</b></td>
+									<td style="border-left:1px solid;">&nbsp;</td> 
+								  <td align="right" style="border-left:1px solid; border-right:1px solid;">
+										<?php echo $totalonhand; ?>
+									</td>
+								</tr>
+
+							  <?php 
+								 
+							$sql="select DrawerID, TransactionModeID, sum(PaymentAmount) 'PaymentAmount', TransactionName
+from (
+select cd.DrawerID, cd.TransactionModeID, sum(PaymentAmount) 'PaymentAmount', t.TransactionName
+										from tblCustCashDrawer cd
+												left join 
+												tlkpTransaction t
+												on
+												cd.TransactionModeID=t.TransactionID
+										where cd.DrawerID=$DID
+										and 
+										cd.TransactionModeID in (11,12,13)
+										and isnull(cd.IsRollback,0)=0
+										group by cd.DrawerID, cd.TransactionModeID, t.TransactionName
+union
+select $DID 'DrawerID', t.TransactionID, 0 'PaymentAmount', TransactionName
+from tlkpTransaction t
+where t.TransactionID in (11,12,13)
+) d
+group by 
+DrawerID, TransactionModeID, TransactionName";
+									$result=$mydb->sql_query($sql);
+									$i=0;
+									$n=0;
+									$totalother = 0;
+									while($row=$mydb->sql_fetchrow($result)){	
+									$totalother += floatval($row['PaymentAmount']);
+									$n++;
+									if($i==0){
+									?>
+								<tr>
+								  <td style="border-left:1px solid;">&nbsp;</td>
+									<td colspan="2" style="border-left:1px solid;">&nbsp;&nbsp;::&nbsp;<b>Other transaction</b></td>
+									<td style="border-left:1px solid;">&nbsp;</td> 
+								  <td align="right" style="border-left:1px solid; border-right:1px solid">&nbsp;</td>
+								</tr>
+									<?php
+									$i++;
+									}									
+							  ?>							
+						
+								<tr>
+								  <td width="6%">&nbsp;</td>
+								  <td width="6%" style="border-left:1px solid;">&nbsp;</td>
+								  <td><?php echo $n.".".stripslashes($row['TransactionName']);?> : </td>
+								  <td align="right" style="border-left:1px solid;">
+								  <?php
+									   	echo FormatCurrency($row['PaymentAmount']);
+								   ?>
+								  </td>
+									<td style="border-left:1px solid; border-right:1px solid">
+									</td>  
+								</tr>
+								  <?php 
+									}									
+								?>	
+								<tr>
+								  <td width="6%">&nbsp;</td>
+								  <td width="6%" style="border-left:1px solid;">&nbsp;</td>
+								  <td><b>Total</b></td>
+								  <td style="border-left:1px solid;">&nbsp;</td>  
+								  <td style="border-left:1px solid; border-right:1px solid;" align="right"><b><?php
+									   	echo FormatCurrency($totalother);										
+								   ?></b></td>
+								</tr>
+							</table>					  
+						</td>
+				</tr>			
+			</table>	
+		</td>
+	</tr>
+</table>
+<?php }?>
+
+ </td></tr>
+	<tr><td align="left"> <?php 
+  if(!empty($smt) && isset($smt) && ($smt == "save901") && $isBeforeReport==0){
+
+  ?>
+  <table width="657" border="0" cellpadding="0" cellspacing="5" bordercolor="#999999" style="border-collapse:collapse">
+	<tr>		
+		<td valign="top" align="left">
+			<table border="0" cellpadding="2" cellspacing="0" bordercolor="#999999" style="border-collapse:collapse"class="formbg" align="left" width="100%">
+				<tr>
+					<td width="76%" align="left" class="formtitle"><b>After Close Cash Drawer Report</b></td>
+				    <td width="24%" align="right" class="formtitle"><a href="./administration/cashdrawerreport.php?DID=<?php echo $DID?>&close=1" target="_blank">[Print Report]</a> </td>
+				</tr> 				
+				<tr>
+					<td colspan="2">
+							<table border="0" bordercolor="#999999" style="border-collapse:collapse" cellpadding="3" cellspacing="0" align="left" width="100%" bgcolor="#feeac2">																
+								
+								
+							  <?php
+									$sql="select DrawerID, Min(PaymentDate) 'StartTransaction',
+													 Max(PaymentDate) 'EndTransaction', Cashier
+											
+											from tblCashPayment cd
+											where DrawerID=$DID
+											group by DrawerID, Cashier";
+									$result=$mydb->sql_query($sql);
+									while($row2=$mydb->sql_fetchrow($result)){
+										$drawerid=intval($row2["DrawerID"]);
+										$cashier=stripslashes($row2["Cashier"]);
+										$starttransaction=stripslashes($row2["StartTransaction"]);
+										$endtransaction=stripslashes($row2["EndTransaction"]);
+										
+								
+							  ?>
+							  
+							  <tr>
+								  <td colspan="4"> &nbsp;&nbsp;&nbsp;Drawer: <b><?php echo $drawerid;?></b>, Cashier: <b><?php echo $cashier;?></b></td>
+							  </tr>
+								<tr>
+								  <td colspan="3"> &nbsp;&nbsp;&nbsp;Start Transaction:  <b><?php echo $starttransaction;?></b></td>
+							      <td width="51%">End Transaction: <b><?php echo $endtransaction;?></b></td>
+						      </tr>
+							   <?php } ?>
+							</table>					  </td>
+				</tr>			
+								<tr>
+					<td colspan="2">
+							<table border="1" style="border-collapse:collapse" cellpadding="3" cellspacing="0" align="left" width="100%" bgcolor="#feeac2">																
+								<tr>
+								  <td colspan="5"> &nbsp;&nbsp;::&nbsp;<b>Revenue From System</b> </td>
+							  </tr>
+							  <?php 
+							  	  $sum1=0.0;
+								  $sum2=0.0;
+								  $sql="
+								  
+select DrawerID, TransactionModeID, sum(PaymentAmount) 'PaymentAmount', TransactionName
+from (
+select cd.DrawerID, cd.TransactionModeID, sum(PaymentAmount) 'PaymentAmount', t.TransactionName
+										from tblCashPayment cd
+												left join 
+												tlkpTransaction t
+												on
+												cd.TransactionModeID=t.TransactionID
+										where cd.DrawerID=$DID
+										and 
+										cd.TransactionModeID in (1,3,4,5,6)
+										
+										group by cd.DrawerID, cd.TransactionModeID, t.TransactionName
+union
+select $DID 'DrawerID', t.TransactionID, 0 'PaymentAmount', TransactionName
+from tlkpTransaction t
+where t.TransactionID in (1,3,4,5,6)
+) d
+group by 
+DrawerID, TransactionModeID, TransactionName
+Union
+select cd.DrawerID,'0'  'TransactionModeID', sum(PaymentAmount) 'PaymentAmount', 'Total' 'TransactionName'
+										from tblCashPayment cd
+												left join 
+												tlkpTransaction t
+												on
+												cd.TransactionModeID=t.TransactionID
+										where cd.DrawerID=$DID
+										and 
+										cd.TransactionModeID in (1,3,4,5,6)
+										
+										group by cd.DrawerID";
+									$result=$mydb->sql_query($sql);
+									$i=0;
+									while($row=$mydb->sql_fetchrow($result)){
+									$i++;										
+									if($row['TransactionName']!="Total"){
+							  ?>							
+						
+								<tr>
+								  <td width="6%">&nbsp;</td>
+								  <td colspan="2"><?php echo $i.". ".stripslashes($row['TransactionName']);?> : </td>
+								  <td colspan="2">
+								  <?php
+									   	echo "\$ ".stripslashes($row['PaymentAmount']);
+								   ?>
+								   </font></td>  
+								</tr>
+								  <?php 
+									}else{
+									
+									?>
+									
+								<tr>
+								  <td width="6%">&nbsp;</td>
+								  <td width="6%">&nbsp;</td>
+								  <td width="39%"><b><?php echo stripslashes($row['TransactionName']);?></b></td>
+								  <td width="21%"></font></td>  
+								  <td width="28%"><b><?php
+									   	echo "\$ ".stripslashes($row['PaymentAmount']);
+								   ?></b></td>
+								</tr>
+									<?php			
+									$sum1=doubleval($row['PaymentAmount']);			
+									}
+								}// end while
+									
+								?>
+		
+							  <?php 
+								 
+							$sql="select DrawerID, TransactionModeID, sum(PaymentAmount) 'PaymentAmount', TransactionName
+from (
+select cd.DrawerID, cd.TransactionModeID, sum(PaymentAmount) 'PaymentAmount', t.TransactionName
+										from tblCashPayment cd
+												left join 
+												tlkpTransaction t
+												on
+												cd.TransactionModeID=t.TransactionID
+										where cd.DrawerID=$DID
+										and 
+										cd.TransactionModeID in (2,7,8,9,10,14,15)
+										
+										group by cd.DrawerID, cd.TransactionModeID, t.TransactionName
+union
+select $DID 'DrawerID', t.TransactionID, 0 'PaymentAmount', TransactionName
+from tlkpTransaction t
+where t.TransactionID in (2,7,8,9,10,14,15)
+) d
+group by 
+DrawerID, TransactionModeID, TransactionName
+										union
+										select cd.DrawerID, '' TransactionModeID, sum(PaymentAmount) 'PaymentAmount', 'Total' 'TransactionName'
+										from tblCashPayment cd
+												left join 
+												tlkpTransaction t
+												on
+												cd.TransactionModeID=t.TransactionID
+										where cd.DrawerID=$DID
+										and 
+										cd.TransactionModeID in (2,7,8,9,10,15,14)
+																				
+										group by cd.DrawerID
+										";
+									$result=$mydb->sql_query($sql);
+									$i=0;
+									while($row=$mydb->sql_fetchrow($result)){
+									 	if($i==0){
+										?>
+										<tr>
+										  <td>&nbsp;</td>
+										  <td colspan="4">Less</td>
+									  </tr>
+										<?php
+										$i++;
+										}	
+									 if($row["TransactionName"]!="Total"){								
+							  ?>							
+						
+								<tr>
+								  <td width="6%">&nbsp;</td>
+								  <td width="6%">&nbsp;</td>
+								  <td width="39%">- <?php echo stripslashes($row['TransactionName']);?> : </td>
+								  <td colspan="2">
+								  <?php
+									   	echo "\$ ".stripslashes($row['PaymentAmount']);
+								   ?>
+								   </font></td>  
+								</tr>
+								  <?php 
+									}else{
+									?>
+									
+								<tr>
+								  <td width="6%">&nbsp;</td>
+								  <td width="6%">&nbsp;</td>
+								  <td width="39%"><b><?php echo stripslashes($row['TransactionName']);?></b></td>
+								  <td width="21%"></font></td>  
+								  <td width="28%"><b><?php
+									   	echo "\$ ".stripslashes($row['PaymentAmount']);
+										$sum2=doubleval($row['PaymentAmount']);
+								   ?></b></td>
+								</tr>
+									<?php
+									}
+								}
+								?>	
+								<tr>
+								  <td width="6%">&nbsp;</td>
+								  <td colspan="2"><b>Net cash on hand: </b></td>
+								  <td width="21%"></font></td>  
+								  <td width="28%"><b><?php echo "\$ ".doubleval($sum1-$sum2); ?></b></td>
+								</tr>
+
+							  <?php 
+								 
+							$sql="select DrawerID, TransactionModeID, sum(PaymentAmount) 'PaymentAmount', TransactionName
+from (
+select cd.DrawerID, cd.TransactionModeID, sum(PaymentAmount) 'PaymentAmount', t.TransactionName
+										from tblCashPayment cd
+												left join 
+												tlkpTransaction t
+												on
+												cd.TransactionModeID=t.TransactionID
+										where cd.DrawerID=$DID
+										and 
+										cd.TransactionModeID in (11,12,13)
+										
+										group by cd.DrawerID, cd.TransactionModeID, t.TransactionName
+union
+select $DID 'DrawerID', t.TransactionID, 0 'PaymentAmount', TransactionName
+from tlkpTransaction t
+where t.TransactionID in (11,12,13)
+) d
+group by 
+DrawerID, TransactionModeID, TransactionName";
+									$result=$mydb->sql_query($sql);
+									$i=0;
+									while($row=$mydb->sql_fetchrow($result)){	
+									if($i==0){
+									?>
+																		<tr>
+								  <td>&nbsp;</td>
+								  <td colspan="4">Other Transaction: </td>
+							  </tr>
+									<?php
+									$i++;
+									}									
+							  ?>							
+						
+								<tr>
+								  <td width="6%">&nbsp;</td>
+								  <td width="6%">&nbsp;</td>
+								  <td width="39%"><?php echo stripslashes($row['TransactionName']);?> : </td>
+								  <td colspan="2">
+								  <?php
+									   	echo "\$ ".stripslashes($row['PaymentAmount']);
+								   ?>
+								   </font></td>  
+								</tr>
+								  <?php 
+									}
+									
+								?>	
+							</table>					  </td>
+				</tr>			
+			</table>	
+		</td>
+	</tr>
+</table>
+<?php }?>
+
+
+
+
+ </td></tr>
+	</table></td>
+  </tr>
+</table>
+
+<?php
+# Close connection
+$mydb->sql_close();
+?>

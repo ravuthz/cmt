@@ -1,0 +1,101 @@
+<!-- Begin
+var n;
+var p;
+var p1;
+
+function ValidatePhone(phone){
+	var whichCode = (window.Event) ? event.which : event.keyCode;
+	
+if ((whichCode == 8) || (whichCode == 11) || (whichCode == 12) || (whichCode == 32) || (whichCode == 127)) //Ignore the Netscape value for backspace. IE has no value
+	return false;
+else{
+	//var validChar = '32,43,45,47,48,49,50,51,52,53,54,55,56,57,58,59,95,96,97,98,99,100,101,102,103,104,105';	
+	/*if(validChar.indexOf(whichCode) == -1){
+		//phone.value = ""
+		phone.focus();
+		phone.select();
+		return false;
+	}*/
+	//alert(phone.value.length);
+	var validChar = '1,2,3,4,5,6,7,8,9,0,/,-,;, ,+,(,)';
+	for (i=0; i<phone.value.length; i++){
+		if(validChar.indexOf(phone.value.charAt(i)) == -1){
+			phone.value = phone.value.substr(0, (phone.value.length)-1);
+			return false;
+		}
+	}
+}
+p=phone.value
+if(p.length==3){
+	//d10=p.indexOf('(')
+	pp=p;
+	d4=p.indexOf('(')
+	d5=p.indexOf(')')
+	if(d4==-1){
+		pp="("+pp;
+	}
+	if(d5==-1){
+		pp=pp+")";
+	}
+	//pp="("+pp+")";
+	phone.value="";
+	phone.value=pp;
+}
+if(p.length>3){
+	d1=p.indexOf('(')
+	d2=p.indexOf(')')
+	if (d2==-1){
+		l30=p.length;
+		p30=p.substring(0,4);
+		//alert(p30);
+		p30=p30+")"
+		p31=p.substring(4,l30);
+		pp=p30+p31;
+		//alert(p31);
+		phone.value="";
+		phone.value=pp;
+	}
+}
+if(p.length>5){
+	p11=p.substring(d1+1,d2);
+	if(p11.length>3){
+	p12=p11;
+	l12=p12.length;
+	l15=p.length
+	//l12=l12-3
+	p13=p11.substring(0,3);
+	p14=p11.substring(3,l12);
+	p15=p.substring(d2+1,l15);
+	phone.value="";
+	pp="("+p13+")"+p14+p15;
+	phone.value=pp;
+	//obj1.value="";
+	//obj1.value=pp;
+	}
+	l16=p.length;
+	p16=p.substring(d2+1,l16);
+	l17=p16.length;
+	if(l17>3&&p16.indexOf('-')==-1){
+		p17=p.substring(d2+1,d2+4);
+		p18=p.substring(d2+4,l16);
+		p19=p.substring(0,d2+1);
+		//alert(p19);
+	pp=p19+p17+"-"+p18;
+	phone.value="";
+	phone.value=pp;
+	//obj1.value="";
+	//obj1.value=pp;
+	}
+}
+}
+
+function CheckPhone(phone){
+		if(phone.value != ""){
+			if(phone.value.length <12){
+					alert("Invalid phone format");
+					phone.focus();
+					return;
+			}
+		}
+}
+// END -->

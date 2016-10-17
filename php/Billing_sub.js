@@ -1,0 +1,3 @@
+	function dott{
+		alert('Hello');
+	}

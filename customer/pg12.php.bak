@@ -1,0 +1,650 @@
+<?php
+	require_once("./common/agent.php");	
+	require_once("./common/class.audit.php");
+	require_once("./common/functions.php");
+	/*
+		+ ************************************************************************************** +	
+		*																																												 *
+		* This code is not to be distributed without the written permission of BRC Technology.   *
+		* Copyright © 2006 <a href="http://www.brc-tech.com" target="_blank">BRC Technology</a>  *
+		* 																																											 *
+		+ ************************************************************************************** +
+	*/
+?>
+<script language="JavaScript" src="./javascript/ajax_location.js"></script>
+<script language="JavaScript" src="./javascript/validphone.js"></script>
+<script language="JavaScript" src="./javascript/date.js"></script>
+<script language="JavaScript" type="text/javascript">
+	function changeImage(imgCode, imgSource){
+		//alert(imgSource);
+			 if(imgCode == 1)
+				document.customer.src = imgSource;
+		else if(imgCode ==2)
+				document.product.src = imgSource;
+		else if(imgCode ==3)
+				document.finance.src = imgSource;
+		else if(imgCode ==4)
+				document.usage.src = imgSource;
+		else if(imgCode ==5)
+				document.audit.src = imgSource;	
+	}
+	//
+	//	Validate form
+	//
+	function ValidateForm(){
+		CustomerName = feditcust.txtCustomerName;
+		selCustDuplicateID = feditcust.selCustDuplicateID;
+		selCustNationality = feditcust.selCustNationality;
+		selCustOccupation = feditcust.selCustOccupation;
+		selBilInvoiceType = feditcust.selBilInvoiceType;
+		SelMessengerID = feditcust.SelMessengerID;
+		txtBilEmail = feditcust.txtBilEmail;
+		comment = feditcust.comment
+		if(Trim(CustomerName.value) == ""){
+			alert("Please enter customer name.");
+			CustomerName.focus();
+			return;
+		}else if(selBilInvoiceType.selectedIndex == 1){
+				if(Trim(txtBilEmail.value) == ""){
+					alert("Pleas enter billing email addresss");
+					txtBilEmail.focus();
+					return;
+				}
+		}
+		if(Trim(comment.value) == ""){
+			alert("Pleas enter note on change");
+			comment.focus();
+			return;
+		}
+		if(Trim(txtBilEmail.value) != ""){
+			if(!isValidMail(Trim(txtBilEmail.value))){
+				alert("Invalid billing email address");
+				txtBilEmail.focus();
+				return;
+			}
+		}
+		
+		
+		feditcust.txtMessenger.value = SelMessengerID.options[SelMessengerID.selectedIndex].text;
+		feditcust.txtOccupation.value = selCustOccupation.options[selCustOccupation.selectedIndex].text;
+		feditcust.txtNationality.value = selCustNationality.options[selCustNationality.selectedIndex].text;
+		feditcust.txtInvoice.value = selBilInvoiceType.options[selBilInvoiceType.selectedIndex].text;
+		feditcust.txtDuplicationID.value = selCustDuplicateID.options[selCustDuplicateID.selectedIndex].text;
+		
+		feditcust.btnSave.disabled = true;
+		feditcust.submit();
+	}
+	//
+	// Store name value
+	//
+	function storeNameValue(index, cat){		
+				
+		if(cat == 6){			
+			location(4, feditcust.selKhan.options[index].value, "selSangkat");
+		}
+		else if(cat == 7){		
+			location(3, feditcust.selCity.options[index].value, "selKhan");
+		}			
+		else if(cat == 8){
+			location(2, feditcust.selCountry.options[index].value, "selCity");
+		}
+	}												
+	
+</script>
+<?php
+		
+	# =============== Get customer header =====================
+		
+		$sql = "select c.CustName, sum(d.NationalDeposit) as ncDeposit, sum(d.InternationDeposit) as 'icDeposit',
+									sum(d.MonthlyDeposit) as mfDeposit, sum(b.Credit) as Credit, sum(b.Outstanding) as Outstanding 
+						from tblCustomer c, tblCustProduct a, tblAccountBalance b, tblAccDeposit d
+						where c.CustID = a.CustID and a.AccID = b.AccID and a.AccID = d.AccID and c.CustID=$CustomerID
+						group by c.CustName";
+
+		if($que = $mydb->sql_query($sql)){
+			if($rst = $mydb->sql_fetchrow($que)){
+				$Salutation = $rst['Salutation'];
+				$CustName = $rst['CustName'];
+				$ncDeposit = $rst['ncDeposit'];
+				$icDeposit = $rst['icDeposit'];
+				$mfDeposit = $rst['mfDeposit'];
+				$Deposit = $ncDeposit + $icDeposit + $mfDeposit;
+				$Deposit = FormatCurrency($Deposit);
+				$Credit = FormatCurrency($rst['Credit']);
+				$Outstanding = FormatCurrency($rst['Outstanding']);
+				$hCustName = $Salutation." ".$CustName;
+			}
+		}
+		
+		$mydb->sql_freeresult();
+	
+	//
+	//	Save customer information
+	//	
+	if(!empty($smt) && isset($smt) && ($smt == "savepg12")){
+		$selCustSalutation = FixQuotes($selCustSalutation);
+		$txtCustomerName = FixQuotes($txtCustomerName);
+		$txtCustDOB = FixQuotes($txtCustDOB);
+		$txtBusReg = FixQuotes($txtBusReg);
+		$selCustDuplicateID = FixQuotes($selCustDuplicateID);
+		$CustDuplicate = FixQuotes($CustDuplicate);
+		$radExemption = FixQuotes($radExemption);
+		$txtVATNumber = FixQuotes($txtVATNumber);
+		$selCustNationality = FixQuotes($selCustNationality);
+		$selCustOccupation = FixQuotes($selCustOccupation);
+		$selBilInvoiceType = FixQuotes($selBilInvoiceType);
+		$SelMessengerID = FixQuotes($SelMessengerID);
+		$txtBilEmail = FixQuotes($txtBilEmail);
+		$BusType = FixQuotes($BusType);
+		$txtCusPhone = FixQuotes($txtCusPhone);
+		$txtCusEmail = FixQuotes($txtCusEmail);
+		
+		$txtMessenger = FixQuotes($txtMessenger);
+		$txtOccupation = FixQuotes($txtOccupation);
+		$txtNationality = FixQuotes($txtNationality);
+		$txtInvoice = FixQuotes($txtInvoice);
+		$txtDuplicationID = FixQuotes($txtDuplicationID);
+		$Address = FixQuotes($Address);
+		$selSangkat = FixQuotes($selSangkat);
+		$selKhan = FixQuotes($selKhan);
+		$selCity = FixQuotes($selCity);
+		$selCountry = FixQuotes($selCountry);
+		
+		$comment = FixQuotes($comment);
+		$Operator = $user['FullName'];
+		 
+		$audit = new Audit();
+		
+		$sql = "UPDATE tblCustomer SET 
+							CustName = '".$txtCustomerName."', 
+							VATNumber = '".$txtVATNumber."', 
+							IsVATException = '".$radExemption."', 
+							IdentityData = '".$CustDuplicate."', 
+							InvoiceTypeID = '".$selBilInvoiceType."', 
+							NationalityID = '".$selCustNationality."', 
+							BillingEmail = '".$txtBilEmail."', 
+							OccupationID = '".$selCustOccupation."', 
+							BusinessReg = '".$txtBusReg."', 
+							MessengerID = '".$SelMessengerID."', 
+							IdentityMode = '".$selCustDuplicateID."', 
+							DOB = '".$txtCustDOB."', 
+							Salutation = '".$selCustSalutation."',
+							IsAccGroup = '".$ckboxisaccgroup."',
+							Category = '".$BusType."',
+							Telephone = '".$txtCusPhone."',
+							Email = '".$txtCusEmail."',
+							Address = '".$Address."',
+							SangkatID = '".$selSangkat."',
+							KhanID = '".$selKhan."',
+							CityID = '".$selCity."',
+							CountryID = '".$selCountry."'
+						WHERE CustID = $CustomerID  
+					 ";
+		if($mydb->sql_query($sql)){
+			if($radExemption)
+				$VATCharge = "No";
+			else
+				$VATCharge = "Yes";
+			$title = "Update customer information";
+			//$description = "Change customer information to: Name: $txtCustomerName; VAT number: $txtVATNumber; VAT charge: $VATCharge; duplicate: $txtDuplicationID- $CustDuplicate; invoice type: $txtInvoice; billing email: $txtBilEmail;	nationality: $txtNationality; occupation: $txtOccupation; Messenger: $txtMessenger; 
+//											";
+			$description = $comment;
+			$audit->AddAudit($CustomerID, "", $title, $description, $Operator, 1, 7);	
+			$retOut = $myinfo->info("Successful save changed customer information.", $error['message']);
+
+		}else{
+			$error = $mydb->sql_error();
+			$retOut = $myinfo->error("Failed to update customer information.", $error['message']);
+		}
+	}
+	
+	# =============== Get customer information =====================	
+	$sql = "select CustName, VATNumber, IsVATException, IdentityData, InvoiceTypeID, NationalityID, BillingEmail,
+								CustTypeID, OccupationID, BusinessReg, MessengerID, IdentityMode, DOB, Salutation, IsAccGroup,
+								Telephone, Email, Category, Address, SangkatID, KhanID, CityID, CountryID
+					from tblCustomer where CustID=$CustomerID";
+					
+	if($que = $mydb->sql_query($sql)){
+		if($rst = $mydb->sql_fetchrow($que)){
+			$CustName = $rst['CustName'];
+			$VATNumber = $rst['VATNumber'];
+			$IsVATException = $rst['IsVATException'];
+			$IdentityData = $rst['IdentityData'];
+			$InvoiceTypeID = $rst['InvoiceTypeID'];
+			$NationalityID = $rst['NationalityID'];
+			$BillingEmail = $rst['BillingEmail'];
+			$CustTypeID = $rst['CustTypeID'];
+			$OccupationID = $rst['OccupationID'];
+			$BusinessReg = $rst['BusinessReg'];
+			$DOB = $rst['DOB'];		
+			$MessengerID = $rst['MessengerID'];		
+			$IdentityMode = $rst['IdentityMode'];		
+			$Salutation = $rst['Salutation'];
+			$IsAccGroup = $rst['IsAccGroup'];
+			$Telephone = $rst['Telephone'];
+			$Email = $rst['Email'];
+			$Category = $rst['Category'];					
+			$Address = $rst['Address'];					
+			$SangkatID = $rst['SangkatID'];					
+			$KhanID = $rst['KhanID'];					
+			$CityID = $rst['CityID'];					
+			$CountryID = $rst['CountryID'];					
+		}
+	}
+	$mydb->sql_freeresult();			
+?>
+<table border="0" width="100%" height="100%" cellpadding="0" cellspacing="0" bordercolor="#aaaaaa" style="border-collapse:collapse">
+		<tr>
+			<td valign="top"  height="50">
+					<table border="0" cellpadding="4" cellspacing="0" width="100%">
+						<tr>
+							<td align="left">ID: <b><?php print $CustomerID ?></b></td>						
+							<td align="left" colspan="2">Name:<b><?php print $hCustName ?></b></td>						
+						</tr>
+						<tr>
+							<td align="left">Deposit: <b><?php print $Deposit; ?></b></td>						
+							<td align="left">Balance: <b><?php print $Credit; ?></b></td>						
+							<td align="left">Invoice: <b><?php print $Outstanding; ?></b></td>
+						</tr>
+					</table>
+			</td>
+		</tr>
+		<tr>
+			<td valign="top">
+				<!-- Individual customer tab menu -->
+				<table border="0" cellpadding="0" cellspacing="0" height="100%" width="100%" bordercolor="#ffffff" align="center">
+					 <tr>
+						<td align="left" width="15" background="./images/tab_null.gif">&nbsp;</td>						
+						
+						<td align="left" width="85"><img src="./images/tab/customer_active.gif" name="customer" border="0" id="customer" /></td>						
+						
+						<td align="left" width="85"><a href="./?CustomerID=<?php print $CustomerID; ?>&pg=90"><img src="./images/tab/product.gif" name="product" border="0" id="product" onmouseover="changeImage(2, './images/tab/product_over.gif');" onmouseout="changeImage(2, './images/tab/product.gif');" /></a></td>
+						
+						<td align="left" width="85"><a href="./?CustomerID=<?php print $CustomerID; ?>&pg=41"><img src="./images/tab/finance.gif" name="finance" border="0" id="finance" onmouseover="changeImage(3, './images/tab/finance_over.gif');" onmouseout="changeImage(3, './images/tab/finance.gif');" /></a></td>
+						
+						<td align="left" width="85"><a href="./?CustomerID=<?php print $CustomerID; ?>&pg=70"><img src="./images/tab/usage.gif" name="usage" border="0" id="usage" onmouseover="changeImage(4, './images/tab/usage_over.gif');" onmouseout="changeImage(4, './images/tab/usage.gif');" /></a></td>
+						
+						<td align="left" width="85"><a href="./?CustomerID=<?php print $CustomerID;?>&pg=30"><img src="./images/tab/audit.gif" name="audit" border="0" id="audit" onmouseover="changeImage(5, './images/tab/audit_over.gif');" onmouseout="changeImage(5, './images/tab/audit.gif');"/></a></td>						
+						
+						<td align="center" width="*" background="./images/tab_null.gif">&nbsp;</td>		
+					</tr>
+				</table>
+					<!-- end customer table menu -->			
+			</td>
+		</tr>
+		<tr>
+			<td height="100%" valign="top">
+					<!-- Individual customer main page -->				
+					<table border="0" cellpadding="0" cellspacing="5" width="100%" height="100%" align="left">						
+						<tr>
+							<td width="150" valign="top"><?php include("content.php");?></td>
+							<!-- Customer information -->
+							<td align="left" valign="top">
+								<form name="feditcust" method="post" action="./">
+									<table border="0" cellpadding="2" cellspacing="0" class="formbg" align="left" width="100%">
+										<tr>
+											<td align="left" class="formtitle" height="18"><b>Edit Customer information</b></td>
+										</tr>
+										<tr>
+											<td valign="top">
+												<table border="0" cellpadding="2" cellspacing="0" width="100%" height="100%" bgcolor="#feeac2"> 							
+													<tr>
+														<td align="left">
+													<?php
+														if($CustTypeID ==1){
+															echo '<tr><td align=left>Salutation:</td>';
+															echo '<td colspan=3>';
+															echo '<select name="selCustSalutation" class="boxenabled" tabindex="1">
+																			<option value="Mr." ';
+																			if($Salutation == "Mr.") print "selected";
+															echo '>Mr.</option>';
+															echo '<option value="Mrs." ';
+																			if($Salutation == "Mrs.") print "selected";
+															echo '>Mrs.</option>';
+															echo '<option value="Miss." ';
+																			if($Salutation == "Miss.") print "selected";
+															echo '>Miss.</option>';
+															echo '<option value="Dr." ';
+																			if($Salutation == "Dr.") print "selected";
+															echo '>Dr.</option>';
+															echo '</select>';
+															echo '</td></tr>';															
+														}else{
+															echo '<tr><td colspan=4><input type="hidden" name="selCustSalutation" value=""></td>';
+														}
+													?>
+													<tr>
+														<td align="left">Customer name:</td>
+														<td align="left" colspan="3">
+													<input type="text" name="txtCustomerName" tabindex="2" class="boxenabled" size="80" value="<?php print $CustName; ?>" />													</tr>
+													<?php
+														if($CustTypeID ==2){
+													?>
+													<tr>
+														<td align="left">Category:</td>
+														<td align="left" colspan="3">
+															<select name="BusType" class="boxenabled" tabindex="2" style="width:190px">
+																<?php
+																	$sql = "SELECT TypeID, Name from tlkpCustBusinessType where IsShow = 1 order by Name";
+																	// sql 2005
+																	
+																	$que = $mydb->sql_query($sql);									
+																	if($que){
+																		while($rst = $mydb->sql_fetchrow($que)){	
+																			$TypeID = $rst['TypeID'];
+																			$Name = $rst['Name'];
+																			if($Category = $TypeID)
+																				$sel = "selected";
+																			else
+																				$sel = "";
+																			print "<option value='".$TypeID."' ".$sel.">".$Name."</option>";
+																		}
+																	}
+																	$mydb->sql_freeresult();
+																?>
+															</select>
+														</td>
+													</tr>
+													<?php
+														}
+													?>
+													<tr>														
+														<?php
+														if($CustTypeID ==1){
+															echo '<td align="left">Date of birth</td>';
+															echo '<td align="left">';
+															echo '<input type="text" tabindex="3" name="txtCustDOB" class="boxenabled" size="12" maxlength="30" value="'; 
+															echo formatDate($DOB, 5); 
+															echo '" onKeyUp="DateFormat(this,this.value,event,false,\'2\')" onBlur="DateFormat(this,this.value,event,true,\'2\')" />
+											<button class="invisibleButtons" onClick="window.open( \'./javascript/calendar.html?feditcust|txtCustDOB\', \'\', \'width=200,height=220,top=250,left=350\');">
+												<img src=\'./images/b_calendar.png\' alt=\'View Calendar\' align="middle" border="0">
+											</button>(YYYY-MM-DD)';
+															echo '</td>';
+														}else{
+															echo '<td align="left">Date of birth</td>';
+															echo '<td align="left">';
+															echo '<input type="text" name="txtBusReg" class="boxenabled" tabindex="3" size=30 value="';
+															echo $BusinessReg;
+															echo '"></td>';
+														}	
+														?>
+														<td align="left">Duplicate:</td>
+														<td align="left" nowrap="nowrap">
+															<select name="selCustDuplicateID" class="boxenabled" tabindex="4">
+																<option value="ID Card" <?php if($IdentityMode == "ID Card") print "selected"?>>ID Card</option>
+																<option value="Passport" <?php if($IdentityMode == "Passport") print "selected"?>>Passport</option>
+																<option value="Family book" <?php if($IdentityMode == "Family book") print "selected"?>>Family book</option>
+															</select>
+															<input type="text" name="CustDuplicate" class="boxenabled" tabindex="5" size="9" value="<?php print $IdentityData;?>" />														</td>
+													</tr>
+													<tr>
+														<td align="left" nowrap="nowrap">
+															VAT charge:														</td>
+														<td align="left">
+															<input type="radio" name="radExemption" tabindex="6" value="0" <?php if($IsVATException == 0) print("checked"); ?> checked />YES&nbsp;&nbsp;&nbsp;
+															<input type="radio" name="radExemption" tabindex="7" value="1" <?php if($IsVATException == 1) print("checked"); ?> />NO														</td>
+														<td align="left" nowrap="nowrap">
+															VAT number:														</td>
+														<td align="left">
+															<input type="text" name="txtVATNumber" class="boxenabled" tabindex="8" size="27" maxlength="30" value="<?php print $VATNumber;?>" />														</td>
+													</tr>
+													<tr>
+													<td align="left">Telephone:</td>
+													<td align="left"><input type="text" name="txtCusPhone" value="<?php print $Telephone; ?>" class="boxenabled" tabindex="11" size="27" onkeyup="ValidatePhone(this);" onblur="CheckPhone(this);" />
+													</td>
+													<td align="left">Email:</td>
+													<td align="left"><input type="text" name="txtCusEmail" value="<?php print $Email; ?>" class="boxenabled" tabindex="12" size="27" /> </td>
+												</tr>
+													<tr>
+														<td align="left">Nationality:</td>
+														<td align="left">
+															<select name="selCustNationality" class="boxenabled" tabindex="9" style="width:190px">
+																<?php
+																	$sql = "SELECT CountryID, Country from tlkpCountry order by Country";
+																	// sql 2005
+																	
+																	$que = $mydb->sql_query($sql);									
+																	if($que){
+																		while($rst = $mydb->sql_fetchrow($que)){	
+																			$nCountryID = $rst['CountryID'];
+																			$Country = $rst['Country'];
+																			if($NationalityID == $nCountryID) 
+																				$sel = "selected";
+																			else
+																				$sel = "";
+																			print "<option value='".$nCountryID."' ".$sel.">".$Country."</option>";
+																		}
+																	}
+																	$mydb->sql_freeresult();
+																?>
+															</select>														</td>
+														<td align="left">
+															Occupation:														</td>
+														<td align="left">
+															<select name="selCustOccupation" class="boxenabled" tabindex="10" style="width:190px">										
+																<?php
+																	$sql = "SELECT CareerID, Career from tlkpCareer order by CareerID";
+																	// sql 2005
+																	
+																	$que = $mydb->sql_query($sql);									
+																	if($que){
+																		while($rst = $mydb->sql_fetchrow($que)){	
+																			$CareerID = $rst['CareerID'];
+																			$Career = $rst['Career'];												
+																			if($OccupationID == $CareerID) 
+																				$sel = "selected";
+																			else
+																				$sel = "";
+																			print "<option value='".$CareerID."' ".$sel.">".$Career."</option>";
+																		}
+																	}
+																	$mydb->sql_freeresult();
+																?>
+															</select>														</td>
+													</tr>
+													<tr>
+														<td align="left">Invoice type:</td>
+														<td align="left">
+															<select name="selBilInvoiceType" class="boxenabled" tabindex="11" style="width:190px;">
+															<?php
+																$sql = "SELECT InvoiceTypeID, InvoiceType from tlkpCustInvoiceType order by InvoiceType";
+																// sql 2005
+																
+																$que = $mydb->sql_query($sql);									
+																if($que){
+																	while($rst = $mydb->sql_fetchrow($que)){	
+																		$dbInvoiceTypeID = $rst['InvoiceTypeID'];
+																		$InvoiceType = $rst['InvoiceType'];												
+																		if($InvoiceTypeID == $dbInvoiceTypeID) 
+																			$sel = "selected";
+																		else
+																			$sel = "";
+																		print "<option value='".$dbInvoiceTypeID."' ".$sel.">".$InvoiceType."</option>";
+																	}
+																}
+																$mydb->sql_freeresult();
+																
+															?>
+														</select>														</td>
+														<td align="left">Messenger:</td>
+														<td align="left">
+															<select name="SelMessengerID" class="boxenabled" tabindex="12" >	
+																<?php
+																	$sql = "SELECT MessengerID, Salutation, Name from tlkpMessenger order by Name";														
+																	$que = $mydb->sql_query($sql);									
+																	if($que){
+																		while($rst = $mydb->sql_fetchrow($que)){	
+																			$dbMessengerID = $rst['MessengerID'];
+																			$Salutation = $rst['Salutation'];
+																			$Name = $rst['Name'];	
+																			$MessengerName = $Salutation." ".$Name;
+																			if($MessengerID == $dbMessengerID) 
+																				$sel = "selected";
+																			else
+																				$sel = "";
+																			print "<option value='".$dbMessengerID."' ".$sel.">".$MessengerName."</option>";
+																		}
+																	}
+																	$mydb->sql_freeresult();
+																	
+																?>
+															</select>														</td>
+													</tr>
+													<tr>
+														<td align="left">Billing email</td>
+														<td align="left" colspan="3">
+													<input type="text" name="txtBilEmail" tabindex="13" class="boxenabled" size="80" value="<?php print $BillingEmail; ?>" />			
+													</td>										
+													</tr>
+													<tr>
+														<td align="left">Address:</td>
+														<td align="left" colspan="3">
+															<input type="text" name="Address" class="boxenabled" tabindex="1" size="80" maxlength="100" value="<?php print $Address; ?>" />
+														</td>
+													</tr>
+													<tr>
+														<td align="left">Country:</td>
+														<td align="left">
+															<select name="selCountry" class="boxenabled" tabindex="8" style="width:200px" onChange="storeNameValue(this.selectedIndex, 8);">			
+															<option value="0">Unknown</option>										
+																<?php
+																	$sql = "SELECT id, name from tlkpLocation where type = 1 order by name";
+																	
+																	$que = $mydb->sql_query($sql);									
+																	if($que){
+																		while($rst = $mydb->sql_fetchrow($que)){	
+																			$dbCountryID = $rst['id'];
+																			$Country = $rst['name'];
+																			if($CountryID == $dbCountryID) 
+																				$sel = "selected";
+																			else
+																				$sel = "";
+																			print "<option value='".$dbCountryID."' ".$sel.">".$Country."</option>";
+																		}
+																	}
+																	$mydb->sql_freeresult();
+																?>
+															</select>
+														</td>
+														<td align="left">City:</td>
+														<td align="left">
+															<select name="selCity" class="boxenabled" tabindex="9" style="width:200px" onChange="storeNameValue(this.selectedIndex, 7);">	
+																<?php
+																	$sql = "SELECT id, name from tlkpLocation where type = 2 and country = $CountryID order by name";
+																	
+																	$que = $mydb->sql_query($sql);									
+																	if($que){
+																		while($rst = $mydb->sql_fetchrow($que)){	
+																			$dbCityID = $rst['id'];
+																			$City = $rst['name'];
+																			if($CityID == $dbCityID) 
+																				$sel = "selected";
+																			else
+																				$sel = "";
+																			print "<option value='".$dbCityID."' ".$sel.">".$City ."</option>";
+																		}
+																	}
+																	$mydb->sql_freeresult();
+																?>													
+															</select>
+														</td>																								
+													</tr>
+													<tr>
+														<td align="left">Khan:</td>
+														<td align="left">
+															<select name="selKhan" class="boxenabled" tabindex="10" style="width:200px" onChange="storeNameValue(this.selectedIndex, 6);">
+																<?php
+																	$sql = "SELECT id, name FROM tlkpLocation WHERE Type = 3 AND province in
+																						(SELECT province FROM tlkpLocation WHERE id = ".$CityID.") ORDER BY name";
+																	
+																	$que = $mydb->sql_query($sql);									
+																	if($que){
+																		while($rst = $mydb->sql_fetchrow($que)){	
+																			$dbKhanID = $rst['id'];
+																			$Khan = $rst['name'];
+																			if($KhanID == $dbKhanID) 
+																				$sel = "selected";
+																			else
+																				$sel = "";
+																			print "<option value='".$dbKhanID."' ".$sel.">".$Khan ."</option>";
+																		}
+																	}
+																	$mydb->sql_freeresult();
+																?>																									
+															</select>
+														</td>
+														<td align="left">Sangkat:</td>
+														<td align="left">
+															<select name="selSangkat" class="boxenabled" tabindex="11" style="width:200px">
+																<?php
+																	$sql = "Select id, name from tlkpLocation l where district in 
+																					(Select district from tlkpLocation where id=".$KhanID." and province=l.province 
+																					and country=l.country) and type=4 ORDER BY name";
+																	
+																	$que = $mydb->sql_query($sql);									
+																	if($que){
+																		while($rst = $mydb->sql_fetchrow($que)){	
+																			$dbSangkatID = $rst['id'];
+																			$Sangkat = $rst['name'];
+																			if($SangkatID == $dbSangkatID) 
+																				$sel = "selected";
+																			else
+																				$sel = "";
+																			print "<option value='".$dbSangkatID."' ".$sel.">".$Sangkat ."</option>";
+																		}
+																	}
+																	$mydb->sql_freeresult();
+																?>																										
+															</select>
+														</td>																					
+													</tr>													
+													<tr>
+														<td>&nbsp;</td>
+													    <td colspan="3" align="left"><input type="checkbox" value="1" name="ckboxisaccgroup" id="ckboxisaccgroup" <?php if($IsAccGroup == 1) print("checked='CHECKED'");?> />
+												        Group to single invoice</td>
+												    </tr>
+													<tr>
+														<td align="left" valign="top">Note:</td>
+														<td align="left" colspan="3">
+															<textarea name="comment" cols="61" rows="3" class="boxenabled"></textarea>
+														</td>										
+													</tr>	
+													<tr><td colspan="4">&nbsp;</td></tr>
+													<tr><td align="center" colspan="4">											
+														<input type="reset" tabindex="14" name="reset" value="Reset" class="button" />
+														<input type="button" tabindex="15" name="btnSave" value="Save" class="button" onClick="ValidateForm();" />
+													</td></tr>
+													<?php
+														if(isset($retOut) && (!empty($retOut))){
+															print "<tr><td colspan=\"4\" align=\"left\">$retOut</td></tr>";
+														}
+													?>
+												</table>
+											</td>
+										</tr>										
+									</table>
+									<?php
+										if($CustTypeID ==1){										
+											print "<input type='hidden' value=1 name='BusType'>";
+										}
+									?>
+									<input type="hidden" name="pg" id="pg" value="12" />
+									<input type="hidden" name="CustomerID" value="<?php print $CustomerID; ?>" />	
+									<input type="hidden" name="txtMessenger" value="" />
+									<input type="hidden" name="txtOccupation" value="" />
+									<input type="hidden" name="txtNationality" value="" />
+									<input type="hidden" name="txtInvoice" value="" />
+									<input type="hidden" name="txtDuplicationID" value="" />
+									<input type="hidden" name="smt" value="savepg12" />								
+								</form>
+							</td>
+						</tr>
+					</table>
+				</td>
+			</tr>
+			
+</table>
+<?php
+# Close connection
+$mydb->sql_close();
+?>

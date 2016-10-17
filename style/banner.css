@@ -1,0 +1,27 @@
+/*--
+	*
+	* This code is not to be distributed without the written permission of BRC Technology.
+	* Copyright © 2006 <a href="http://www.brc-tech.com" target="_blank">BRC Technology</a> 
+	* 	
+--*/
+
+/********** Banner **********/
+#topbanner{
+	background:url(../images/banner_bg.jpg);
+	background-repeat:repeat-x;	
+	height:86px;
+	margin:0;
+}
+
+#search{
+	background:url(../images/frame.jpg);
+	background-repeat:no-repeat;
+	background-position:center;	
+	vertical-align:middle;
+	width:501px;
+	height:65px;
+	margin-top: -10px;
+	border-style:none;
+	padding: 10 10;
+	
+}

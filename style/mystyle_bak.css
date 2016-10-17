@@ -1,0 +1,365 @@
+/*--
+	*
+	* This code is not to be distributed without the written permission of BRC Technology.
+	* Copyright © 2006 <a href="http://www.brc-tech.com" target="_blank">BRC Technology</a> 
+	* 	
+--*/
+
+/* ============================================================================== */
+/* Global                                                                   */
+/* ============================================================================== */
+BODY {
+	scrollbar-face-color: #feeac2;
+	scrollbar-highlight-color: #d4dd4;
+	scrollbar-shadow-color: #d4d4d4;
+	scrollbar-arrow-color: #ff6600;
+	scrollbar-3dlight-color: #ff6600;
+	scrollbar-track-color: #ffffff;
+	scrollbar-darkshadow-color: #ffffff;
+	background-color:#ffffff;
+	font-family:Verdana, Arial, Helvetica, sans-serif;
+	color: #000000;
+	font-size:12px;
+	text-align:center;
+	margin:0;
+	overflow:auto;
+}
+/*	
+	background-color: #ffffff;
+	background-color:#feeac2;	
+*/
+#background{
+	width:1000px;
+	height:100%;
+	vertical-align:text-top;	
+	background-color:#feeac2	
+	text-align:center;
+}	
+iframe{
+	scrolling: no;	
+	border:0px;
+}
+.iframe{
+	margin:0;
+	padding:0;
+	border:1px solid #aaaaaa;
+	white-space:nowrap;	
+}
+p, td, tr, div, span, ul, li{
+	font-family:Verdana, Arial, Helvetica, sans-serif;
+	font-size:12px;
+	color:#000000;
+}
+/*	color:#000000; */
+/********** Link **********/
+A:active {color: #0000ff; text-decoration:none};
+A:link {color: #0000ff; text-decoration:none};
+A:visited {color: #0000ff; text-decoration:none};
+A:hover {color: #0000ff; text-decoration:underline};
+
+/********** Form **********/
+.formtitle{	
+	font-family: Arial, Helvetica, sans-serif;
+	font-size:11px;
+	color:#000000;
+	padding: 5, 0, 2, 10;
+	
+}
+/*color: #0000ff; */
+/*background-color:#F6AD55;	*/
+.formbg{
+  background-color:#069afa;
+}
+/*	background-color:#feeac2;*/
+.formbody{
+	background-color:#feeac2;
+	border-style:1px solid #aaaaaa;
+	border-color:#aaaaaa;
+	border-collapse:collapse;
+}
+
+.require{
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 11px;
+	color: #ff0000;
+	background-image:url(../images/required.gif) right;
+}
+
+.button{
+	background-color:#feeac2;
+	border: 1px solid #ff6600;
+	width:100px;
+	cursor: pointer; 
+	cursor: hand;
+}
+
+.button [disabled]{
+	color:#eeeeee;
+}
+
+.boxdisabled {	
+	padding-bottom:2px;
+	padding-left:3px;
+	padding-right:3px;
+	padding-top:2px;
+	border-width: 1px;
+	border-style: solid;	
+
+	background-color:#efefef;
+	border-color: #888888 #888888 #888888 #888888;
+}
+
+.boxenabled{
+	padding-bottom:2px;
+	padding-left:2px;
+	padding-right:3px;
+	padding-top:2px;
+	border-width: 1px;
+	border-style:inset;
+	border-color: #000000 #aaaaaa #aaaaaa #000000; 
+}
+.boxsearch {
+	padding-bottom:2px;
+	padding-left:20px;
+	padding-right:3px;
+	padding-top:2px;
+	border-width: 1px;
+	border-style: solid;	
+	border-color: #666666 #CCCCCC #CCCCCC #666666;
+	background-color:#ffffff;
+	background-image:url(../images/magnify.gif);
+	background-repeat:no-repeat;
+	background-attachment:fixed;
+	background-position:left;
+	font-size:14px; 
+	
+}
+
+.radio{	
+	margin-top: -20px;
+}
+
+.error{
+	font-weight:bold;
+	color:#ff0000;
+}
+
+.radiochecks, .radiochecks:Focus{background-color:transparent;color:red; border:0; padding-top:3px;margin-top:0px;margin-right:4px;}
+
+.invisibleButtons,.invisibleTextField{
+	border-style:none;
+	background-color:transparent;
+}
+
+.invisibleButtons{	
+	text-align:left;
+	vertical-align:middle;
+	cursor: pointer; 
+	cursor: hand;
+}
+
+
+/********* Menu **********/
+#menu_links ul {
+	margin:0 0;
+	padding:0 0px;
+	
+}
+
+#menu_links li{
+	list-style:none;
+	width:150px;
+	height:20px;
+	margin-left:-25px;
+	text-align: left;	
+	vertical-align:middle;
+}
+
+/********* Copyrights *********/
+#copyrights{	
+	width: 100%;
+	height:16px;	
+	color:#aaaaaa;
+	font-size:11px;
+	background-color:#ffffff;
+	border-bottom:1px solid #aaaaaa;
+	border-top:1px solid #aaaaaa;
+	/*background:url(../images/bottom.gif) left;	
+	background-repeat:no-repeat;*/
+	vertical-align:baseline;	
+}
+
+#mainmenu{
+	font-family: Arial, Helvetica, sans-serif;
+	font-size:12px;	
+	height:23px;
+	margin:0;
+	padding-top:1px;
+	background-image:url(../images/menu_bg.gif);
+	background-repeat:no-repeat;
+	vertical-align:middle;
+	text-indent:5px;	
+	text-align:left;
+	color:#ffffff;
+	font-weight:bold;
+	text-transform:capitalize;
+}
+
+.mainwhite{
+	height:390px;
+}
+
+LEGEND{	
+	margin-top:0px;
+	font-weight:bold;
+	font-size:11px; 
+	color:#0000ff;
+	
+	text-transform:capitalize;
+	font-family: Arial, Helvitica, sans-serif;	
+	
+}
+
+FIELDSET{
+	border-color:#FFFFFF;	
+}
+
+.submenu{
+	color:#ffffff;
+	background-color:#feeac2;
+	border-color:#aaaaaa;
+}
+
+/********* Sort table *********/
+table.sortable, th {
+    color:#000000;
+		background-color:#eeeeee;
+    font-weight: bold;
+    text-decoration: none;
+    display: block;
+		border-collapse:collapse;
+		text-align:center;
+}
+
+table.sortable span.sortarrow {
+    color: black;
+    text-decoration: none;
+}
+
+/* ============================================================================== */
+/* Query Results                                                                  */
+/* ============================================================================== */
+.row1{
+	font-weight:normal;
+	background-color:#feeac2;
+	border-collapse:collapse;	
+}
+
+.row2{
+	font-weight:normal;
+	background-color:#ffffff;
+	border-collapse:collapse;
+}
+
+.sortbottom{
+	font-weight:bold;
+	background-color:#eeeeee;
+	border-collapse:collapse;
+}
+
+.white{
+	color:#ffffff;
+}
+.blue{
+	color:#0000ff;
+}
+.disabled{
+	color:#aaaaaa;
+}
+
+#todo{
+	background-image:url(../images/icon/todo.gif);
+	background-repeat:no-repeat;
+	padding-left:20px;
+}
+#lcustomerservice{
+	background-image:url(../images/icon/cs.gif);
+	background-repeat:no-repeat;
+	padding-left:20px;
+}
+#lsales{
+	background-image:url(../images/icon/sale.gif);
+	background-repeat:no-repeat;
+	padding-left:20px;
+}
+#lcashier{
+	background-image:url(../images/icon/cashier.gif);
+	background-repeat:no-repeat;
+	padding-left:20px;
+}
+#lfinance{
+	background-image:url(../images/icon/finance.gif);
+	background-repeat:no-repeat;
+	padding-left:20px;
+}
+#ltechnical{
+	background-image:url(../images/icon/technical.gif);
+	background-repeat:no-repeat;
+	padding-left:20px;
+}
+#ladministrator{
+	background-image:url(../images/icon/admin.gif);
+	background-repeat:no-repeat;
+	padding-left:20px;
+}
+#lreport{
+	background-image:url(../images/icon/report.gif);
+	background-repeat:no-repeat;
+	padding-left:20px;
+}
+#lhelp{
+	background-image:url(../images/icon/help.gif);
+	background-repeat:no-repeat;
+	padding-left:20px;
+}
+#Announcement{
+	background-image:url(../images/icon/cs.gif);
+	background-repeat:no-repeat;
+	padding-left:20px;
+}
+#Traffic{
+	background-image:url(../images/icon/finance.gif);
+	background-repeat:no-repeat;
+	padding-left:20px;
+}
+/* ============================================================================== */
+/* Printer                                                                        */
+/* ============================================================================== */
+.invTitle{
+	font-family:Verdana, Arial, Helvetica, sans-serif;	
+	font-size:13px;
+	font-weight:bold;
+}
+.label{
+	font-weight:normal;
+	font-size:10px;
+}
+.value{
+	font-weight:normal;
+	font-size:14px;
+}
+.invTotal{
+	background-color:#eeeeee;
+	font-weight:bold;
+}
+.invbody{
+	padding-left:10px;
+	padding-right:10px;
+}
+.khmer{
+	font-family:"Khmer Kampongtrach";
+	font-size:smaller;
+	size:2;	
+	line-height:normal;
+	
+}

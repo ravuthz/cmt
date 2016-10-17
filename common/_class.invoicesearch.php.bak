@@ -1,0 +1,120 @@
+<?php 
+ /*
+	*
+	* This code is not to be distributed without the written permission of BRC Technology.
+	* Copyright © 2006 <a href="http://www.brc-tech.com" target="_blank">BRC Technology</a> 
+	* 
+	* Class for searchig.
+	*
+	*	Created by: Chea vey
+	* Created on: 2006 December 28
+	*
+  */
+	class invoicesearch{
+		// connection to database
+		var $mydb;
+		// information
+		var $myinfo;
+		// Search customer:1; messenger:2; salesman:3; account:4; invoice:5; receipt:6
+		var $searchType;
+		// where clause (using like and or operation)
+		var $critery;
+		
+		//
+		// Constructor
+		//
+		function InvoiceSearch($scritery, $type){
+			//$this->searchType = $sMode;
+			$this->critery = $scritery;	
+			$this->searchType = $type;	
+		}// End function
+		
+		//
+		//	Search by customer
+		//
+		function search(){
+			global $mydb;
+			$output = '	<table border="1" cellpadding="3" cellspacing="0" width="100%" id="1" class="sortable" bordercolor="#aaaaaa">
+										<thead>
+											<th>No.</th>
+											<th>Invoice id</th>											
+											<th>Account</th>
+											<th>Due date</th>
+											<th>Total amount</th>											
+											<th>VAT amount</th>
+											<th>Unpaid amount</th>
+											<th>Pay</th>												
+										</thead>
+										<tbody>							
+						';
+						
+			$sql = "SELECT i.InvoiceID, c.CustName, i.DueDate, i.InvoiceAmount, i.VATAmount, 
+					i.UnpaidAmount, i.AccID, a.CustID, a.UserName 
+					FROM tblCustomerInvoice i, tblCustProduct a, tblCustomer c
+					WHERE (i.AccID = a.AccID AND a.CustID = c.CustID)
+					AND i.UnpaidAmount>0 ";
+					
+			if($this->critery != "*"){
+				switch($this->searchType){
+								case 1:
+									$sql .= " and (i.CustID like '%".$this->critery."%')";
+									break;
+								case 2:
+									$sql .= " and (c.CustName like '%".$this->critery."%')";
+									break;
+								case 3:
+									$sql .= " and (i.AccID like '%".$this->critery."%')";
+									break;
+								case 4:
+									$sql .= " and (i.InvoiceID like '%".$this->critery."%')";
+									break;
+								case 5:	
+									$sql .= " and (a.UserName like '%".$this->critery."%')";
+									break;
+								case 6:	
+									$sql .= " and (a.SubscriptionName like '%".$this->critery."%')";
+									break;
+							}
+			}
+			if($que = $mydb->sql_query($sql)){			
+				$iLoop = 1;
+				while($result = $mydb->sql_fetchrow($que)){
+					$CustID = $result['CustID'];
+					$AccID = $result['AccID'];
+					$UserName = $result['UserName'];
+					$InvoiceID = $result['InvoiceID'];
+					$DueDate = $result['DueDate'];
+					$InvoiceAmount = $result['InvoiceAmount'];
+					$VATAmount = $result['VATAmount'];
+					$UnpaidAmount = $result['UnpaidAmount'];	
+
+					$pay = "<a href='./?CustomerID=".$CustID."&InvoiceID=".$InvoiceID."&pg=44'>Pay</a>";
+			
+					$AccountName = "<a href='./?CustomerID=".$CustID."&AccountID=".$AccID."&pg=91'>".$UserName."</a>";
+					$linkInvoice = "<a href='./finance/screeninvoice.php?CustomerID=".$CustID."&InvoiceID=".$InvoiceID."' target='_blank'>".$InvoiceID."</a>";
+					
+					if(($iLoop % 2) == 0)
+						$style = "row1";
+					else
+						$style = "row2";
+					$output .= '<tr>';	
+					$output .= '<td class="'.$style.'" align="right">'.$iLoop.'</td>';
+					$output .= '<td class="'.$style.'" align="left">'.$linkInvoice.'</td>';					
+					$output .= '<td class="'.$style.'" align="left">'.$AccountName.'</td>';				
+					$output .= '<td class="'.$style.'" align="left">'.formatDate($DueDate, 3).'</td>';	
+					$output .= '<td class="'.$style.'" align="right">'.FormatCurrency($InvoiceAmount).'</td>';	
+					$output .= '<td class="'.$style.'" align="right">'.FormatCurrency($VATAmount).'</td>';	
+					$output .= '<td class="'.$style.'" align="right">'.FormatCurrency($UnpaidAmount).'</td>';	
+					$output .= '<td class="'.$style.'" align="left">'.$pay.'</td>';
+					$output .= '</tr>';
+					$iLoop += 1;
+				}// end while
+				$output .= '</tbody>';
+				$output .= '</table>';
+			}// end if que
+
+			return $output;
+		}// end function
+		
+	}// End class
+?>	

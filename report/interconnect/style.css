@@ -1,0 +1,38 @@
+.report_header {
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+	font-size: 24px;
+	font-weight: bold;
+}
+.under_header {
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+	font-size: 14px;
+	font-weight: bold;
+}
+.report_dscr_header {
+	font-family: "Courier New", Courier, monospace;
+	font-size: 14px;
+	font-weight: bold;
+	text-align: center;
+	background-color: #E2E2E2;
+}
+.report_detail {
+	font-family: "Courier New", Courier, monospace;
+	font-size: 12px;
+	text-align: right;
+	background-color: #FFFFFF;
+}
+.report_total {
+	font-family: "Courier New", Courier, monospace;
+	font-size: 14px;
+	background-color: #DBDBDB;
+	text-align: right;
+}
+.khmer_inv_header {
+	font-family: "Limon S1";
+	font-size: 48px;
+}
+.eng_inv_header {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 22px;
+	font-weight: normal;
+}
